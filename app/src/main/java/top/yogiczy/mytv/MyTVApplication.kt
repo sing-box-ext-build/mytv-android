@@ -47,8 +47,15 @@ class MyTVApplication : Application() {
                 Log.w("TvGo", "chmod 提权失败: ${e.message}")
             }
 
-            // 启动 tv-go
-            val process = ProcessBuilder(targetFile.absolutePath).start()
+            // ==========================================
+            // 【核心修复】注入环境变量，把可写目录传给 Go 程序
+            // ==========================================
+            val processBuilder = ProcessBuilder(targetFile.absolutePath)
+            
+            // 这里把 App 的私有 cache 目录传进去
+            processBuilder.environment()["TV_GO_TMP_DIR"] = applicationContext.cacheDir.absolutePath
+            
+            val process = processBuilder.start()
             Log.i("TvGo", "tv-go 启动成功，路径: ${targetFile.absolutePath}")
 
             // 读取日志
