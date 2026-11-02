@@ -5,6 +5,10 @@ on:
     tags:
       - "v*.*.*"
 
+# 必须给权限，否则无法上传到 Release
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,15 +23,12 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      # 删掉了 解码 jks 的步骤
-
       - name: 赋予 tv-go 二进制执行权限
         run: |
           chmod +x app/src/main/jniLibs/arm64-v8a/libtvgo.so
           chmod +x app/src/main/jniLibs/armeabi-v7a/libtvgo.so
 
-      - name: 生成apk
-        # 【注意】这里改成了 assembleDebug
+      - name: 生成apk (Debug)
         run: chmod +x ./gradlew && ./gradlew assembleDebug
 
       - name: 获取版本号
@@ -52,7 +53,8 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           name: v${{ steps.version.outputs.version }}
-          token: ${{ secrets.GIT_TOKEN }}
+          # 【关键修复】换成 GitHub 自带的 Token，千万别用你的 secrets.GIT_TOKEN 了
+          token: ${{ secrets.GITHUB_TOKEN }}
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true
           omitPrereleaseDuringUpdate: true
