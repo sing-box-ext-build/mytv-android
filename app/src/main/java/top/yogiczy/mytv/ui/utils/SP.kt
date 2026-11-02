@@ -163,8 +163,8 @@ object SP {
 
     /** 直播源 url */
     var iptvSourceUrl: String
-        get() = (sp.getString(KEY.IPTV_SOURCE_URL.name, "")
-            ?: "").ifBlank { Constants.IPTV_SOURCE_URL }
+        get() = (sp.getString(KEY.IPTV_SOURCE_URL.name, "") ?: "")
+            .ifBlank { "http://127.0.0.1:3000/live.m3u" }
         set(value) = sp.edit().putString(KEY.IPTV_SOURCE_URL.name, value).apply()
 
     /** 直播源缓存时间（毫秒） */

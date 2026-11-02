@@ -19,18 +19,16 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      - name: 解码生成 jks
-        run: echo $KEYSTORE_BASE64 | base64 -di > app/keystore.jks
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      # 删掉了 解码 jks 的步骤
+
+      - name: 赋予 tv-go 二进制执行权限
+        run: |
+          chmod +x app/src/main/jniLibs/arm64-v8a/libtvgo.so
+          chmod +x app/src/main/jniLibs/armeabi-v7a/libtvgo.so
 
       - name: 生成apk
-        run: chmod +x ./gradlew && ./gradlew assembleRelease
-
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD}}
+        # 【注意】这里改成了 assembleDebug
+        run: chmod +x ./gradlew && ./gradlew assembleDebug
 
       - name: 获取版本号
         id: version
@@ -38,9 +36,9 @@ jobs:
 
       - name: 重命名应用
         run: |
-          for file in app/build/outputs/apk/release/app-*.apk; do
-            if [[ $file =~ app-(.?*)release.apk ]]; then
-              new_file_name="app/build/outputs/apk/release/mytv-android-${BASH_REMATCH[1]}${{ steps.version.outputs.version }}.apk"
+          for file in app/build/outputs/apk/debug/app-*.apk; do
+            if [[ $file =~ app-(.?*)debug.apk ]]; then
+              new_file_name="app/build/outputs/apk/debug/mytv-android-${BASH_REMATCH[1]}${{ steps.version.outputs.version }}.apk"
               mv "$file" "$new_file_name"
             fi
           done
@@ -48,7 +46,7 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir artifacts
-          cp app/build/outputs/apk/release/*.apk artifacts/
+          cp app/build/outputs/apk/debug/*.apk artifacts/
 
       - name: Upload Release
         uses: ncipollo/release-action@v1
